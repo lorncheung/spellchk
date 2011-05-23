@@ -41,11 +41,14 @@ def main()
     print "> "
     answer = STDIN.gets
     exit(0) if answer.nil?
+    
     answer.chomp! 
+
+    exit(0) unless answer.match(/[A-Za-z]/) # only search ascii words
 
     # retrieve letter specific word list 
     word_list[answer.chars.first.downcase].each do |word|
-      if rank = answer.lmatch(word)
+      if rank = answer.matches?(word)
         if suggestion[:rank] < rank
           # if match is of a higher rank than predecessor, move it to alt list and update
           alts << suggestion[:word] unless suggestion[:word].nil?
