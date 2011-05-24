@@ -11,57 +11,46 @@ class String
   #     Incorrect vowels: "weke" => "wake"
   #
   def matches?(word)
-    # convert strings to string arrays
-    word_arr = word.chars.to_a
-    self_arr = self.chars.to_a
-    #word_arr = word.scan(/./)
-    #self_arr = self.scan(/./)
+    # convert strings to string arrays using scan instead of String.chars.to_a 
+    # since it might not be defined in 1.8.6, otherwise would be slightly faster
+    word_arr = word.scan(/./) 
+    self_arr = self.scan(/./)
 
     i,j,score = 0,0,0
-
     lastletter = ""
     is_repeating = false
 
     # base case, return the obvious
-    return 5*self.size if word.downcase == self.downcase
+    return 6*self.size if word.downcase == self.downcase
 
-    log = false 
-   # word.match(/footmaker/)
-    puts word if log
-    # loop through each letter of word and match against the letter in dictionary word
-    # if letter match found, adjust score and increment/decrement counters until end of 
-    # string
     while (i < self_arr.size and j < word_arr.size)
-      print self_arr[i] if log
       self_char = self_arr[i].downcase
       word_char = word_arr[j].downcase 
 
       if self_char == word_char 
         # exact match
-        puts "  exact match" if log
         score += 4
         is_repeating = lastletter == self_char
       else 
         # check for spelling exceptions
         if (i > 0 and self_char == self_arr[i-1].downcase)
           # repeating consonant 
-          puts "  repeating consonant" if log
-          score += 2
+          score += 3
           j -= 1 # shift index back on dict word 
           is_repeating = true
         elsif self_char.vowel? and word_char.vowel?
           # diff vowel 
-          puts "  diff vowel" if log
-          score += 1
           is_repeating = lastletter == self_char
+          score += 2
         elsif lastletter.vowel? and word_char.vowel?
-          puts "  diff vowel but lastletter also vowel" if log
+          # diff vowel but last letter also vowel
           i -= 1
+          score += 1
         elsif self_char.vowel? and lastletter.vowel? and is_repeating 
-          puts "  diff vowel but lastletter repeats" if log
+          # diff vowel but last letter is repeating vowel
           j -= 1
+          score += 1
         else
-          puts "=>NOT MATCH #{is_repeating}" if log
           return false
         end 
       end 
@@ -76,7 +65,7 @@ class String
       # self stopped first, if dict word ends too, return score 
       return j == word_arr.size ? score : false 
     else 
-      # dict word stopped first, look for repeating letters at the end
+      # dict word stopped first, iterate until the end of self
       while (i < self_arr.size)
         return false if self_arr[i].downcase != lastletter
         i += 1

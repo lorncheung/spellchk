@@ -5,12 +5,16 @@ require 'lib/Dictionary'
 require 'benchmark' 
 
 # Main function call
+#
 def main()
   # initialize 
+  if ARGV[0] and ARGV[0].match(/(--help|-h)/)
+    puts File.new('README',"r").read
+    exit()
+  end 
+
   word_list = Dictionary.load_words()
 
-  Benchmark.bmbm do |x|
-  x.report("benchmark:\n") do 
   while (true) do  
     begin 
       suggestion = { :word => nil, :rank => 0}
@@ -28,28 +32,22 @@ def main()
       # retrieve letter specific word list 
       word_list[answer.chars.first.downcase].each do |word|
         if answer.downcase == word.downcase
-          suggestion = {:rank =>  word*4, :word => word}
+          # shortcut exact matches
+          suggestion = {:rank =>  word*6, :word => word}
           break 
-        else  
-          if rank = answer.matches?(word)
-            if suggestion[:rank] < rank
-              suggestion = {:rank => rank, :word => word}
-            end 
-          end
+        elsif rank = answer.matches?(word) and suggestion[:rank] < rank
+          suggestion = {:rank => rank, :word => word} 
+        else 
+          # do nothing, no matched
         end
       end 
 
-      # return response to prompt
-      if suggestion[:word]
-        puts suggestion[:word]
-      else
-        puts "NO SUGGESTION FOR #{answer}"
-      end 
+      # print response 
+      puts suggestion[:word] ? suggestion[:word] : "NO SUGGESTION" 
+
     rescue Exception => err
       break
     end
-  end 
-  end 
   end 
 end 
 
