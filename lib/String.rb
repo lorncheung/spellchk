@@ -6,13 +6,12 @@ class String
 
     i,j,score = 0,0,0
 
-    log = true if word.match(/^sem/i)
     lastletter = ""
     puts "-----" if log
     puts word if log 
 
     # base case, return the obvious
-    return 4*self.size if word.downcase == self.downcase
+    return 5*self.size if word.downcase == self.downcase
 
     # loop through each letter of word and match against the letter in dictionary word
     # if match found, adjust score and increment/decrement counters 
@@ -45,13 +44,12 @@ class String
 
     if i == self_arr.size 
       # self stopped first, if dict word had ended too, return match other false
-      
       return j == word_arr.size ? score : false 
 
     else 
       # dict word stopped first, look for repeating letters at the tail" 
       while (i < self_arr.size)
-        return false if self_arr[i] != lastletter
+        return false if self_arr[i].downcase != lastletter.downcase
         i += 1
       end
       # all letters match, return score
@@ -60,21 +58,26 @@ class String
   end 
 
   def scramble!
-    self_arr = self.chars.to_a 
-    new_word = ""
-    self_arr.each do |letter|
-      case %w{repeating vowels capitalize}[rand(3)]
-      when "repeating"
-        new_word << (letter.match(/[^aeiou]/i) ? letter*(rand(2)+1) : letter)
-      when "vowels"
-        new_word << (letter.match(/[aeiou]/i) ? %w{a e i o u}[rand(5)] : letter)
-      when "capitalize" 
-        new_word << letter.swapcase
-      else 
-        new_word << letter
+    self_arr = self.chars.to_a
+    ''.tap do |word|
+      self_arr.each_with_index do |letter,i|
+        case %w{repeating vowels capitalize}[rand(3)]
+        when "repeating"
+          word << letter*(rand(2)+1) # up to 3 consecutive
+        when "vowels"
+          if i > 0 and !self_arr[i-1].match(/#{letter}/i) and letter.match(/[aeiou]/i)
+            # swap only if non-consecutive
+            word << %w{a e i o u}[rand(5)]
+          else 
+            word << letter
+          end 
+        when "capitalize" 
+          word << letter.swapcase
+        else 
+          word << letter
+        end 
       end 
     end 
-    new_word
   end 
 end 
 
