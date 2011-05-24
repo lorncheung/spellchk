@@ -1,0 +1,33 @@
+
+   _____            ____      __    __       
+  / ___/____  ___  / / /_____/ /_  / /_______
+  \__ \/ __ \/ _ \/ / // ___/ __ \/ //_/ ___/
+ ___/ / /_/ /  __/ / // /__/ / / / ,< / /    
+/____/ .___/\___/_/_/ \___/_/ /_/_/|_/_/     
+    /_/         
+	by Loren Cheung (lccheung@gmail.com)
+
+== Spellchkr
+
+Ruby program that reads words from a prompt and prints either the best spelling suggestion or "NO SUGGESTION" if no suggestion can be found.   
+
+== Requirements 
+
+Ruby 1.8.x+ 
+/usr/bin/ruby
+
+== Files  
+
+  README
+  spell_checker.rb
+  generate_words.rb 
+  lib/String.rb
+  lib/Dictionary.rb
+
+== Usage 
+
+  ./spell_checker.rb 
+  ./generate_words.rb | ./spell_check.rb
+
+Type <ctrl-d> or <ctrl-x> to quit spellchkr
+
