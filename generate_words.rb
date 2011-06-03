@@ -8,7 +8,7 @@ require 'lib/String'
 word_list = Dictionary.load_words()
 
 ("a".."z").each do |letter|
-  5.times do 
+  1.times do 
     rand_word = word_list[letter][rand(word_list[letter].size)]
     puts rand_word
     puts rand_word.scramble!
