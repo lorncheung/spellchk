@@ -72,96 +72,93 @@ class Trie
     # base case if your string is empty, check if you're at word 
     if str.size == 0
       if trie and trie['__WORD__'] != nil
-        puts " matches #{results['__WORD__']}"
-        return results[trie['__WORD__']] = 1
+        puts "\tmatches #{results['__WORD__']}:"
+        results[trie['__WORD__']] = 1
       else 
-        puts "no match" 
-        return results 
+        puts ":no match #{trie.keys}"
       end 
-    end 
-    ch = str.shift
-
-    # perfect match case
-    
-    if str.size >= 1  and trie[ch]
-      print " #{ch}:p "
-      match?(trie[ch], str, results) # str shifted already, check substr
     else
-      # imperfect match case, check for variants
-      if ch.vowel? and str.size >= 0
-        # match vowels substitution
+
+      ch = str.shift
+
+      if ch.vowel? 
+        # check vowel
         %w{a e i o u}.each do |vowel|
-          print "  #{ch}:v\n    #{vowel}"
+          print "  #{ch}:vowel"
           match?(trie[vowel],str,results)
         end 
-      end
-      
-      if ch == str[0] 
-        # match repeating letters
-        print " #{ch}:c "
-        match?(trie[ch],str,results)
       end 
 
-      # matching done, if no matches return results 
+      if ch == str[0]
+        # check for repeating consonant 
+        print "  #{ch}:repeating"
+        match?(trie[ch],str[1,str.size],results) # skip next letter
+      end 
+
+      if trie[ch]
+        # check for perfect match
+        print "  #{ch}:perfect"
+        match?(trie[ch],str,results) 
+      end 
     end 
     return results
   end 
 
 
-    def matches?(str, depth, node = nil) 
-      # traverse trough str and look for match in trie
-      str = str.class == String ? str.downcase.split('') : str
-      node = node || @trie # recursive or default full set
-      i = 0
-      last_ch = ""
-      previous_node = nil
-      is_repeating = false
+  def matches?(str, depth, node = nil) 
+    # traverse trough str and look for match in trie
+    str = str.class == String ? str.downcase.split('') : str
+    node = node || @trie # recursive or default full set
+    i = 0
+    last_ch = ""
+    previous_node = nil
+    is_repeating = false
 
-      log = true 
-      while (i < str.size and str.size > 0)
-        return false if str.nil?
-        ch = str[i]
-        print ch if log
-        cur = ch
-        previous_node = node
-        node = node[cur]
-        if node == nil or ch.vowel? 
-          # not a match
-          if (ch == last_ch)
-            if ch.vowel? 
-              %w{a e i o u}.each do |vowel|
-                if match = matches?(str[i+1,str.size],depth,previous_node[vowel])
-                  return match 
-                end 
-              end 
-            else 
-              # repeating letter (consonant or vowel) 
-              puts " matches repeating #{ch}" if log
-            end 
-            node = previous_node
-            is_repeating = true
-          elsif ch.vowel? and i <= str.size-1 
-            puts " matched vowel #{ch}"
+    log = true 
+    while (i < str.size and str.size > 0)
+      return false if str.nil?
+      ch = str[i]
+      print ch if log
+      cur = ch
+      previous_node = node
+      node = node[cur]
+      if node == nil or ch.vowel? 
+        # not a match
+        if (ch == last_ch)
+          if ch.vowel? 
             %w{a e i o u}.each do |vowel|
-              if match = matches?(str[i+1,str.size],previous_node[vowel])
+              if match = matches?(str[i+1,str.size],depth,previous_node[vowel])
                 return match 
               end 
             end 
-          else
-            return false
+          else 
+            # repeating letter (consonant or vowel) 
+            puts " matches repeating #{ch}" if log
           end 
-        else 
-          # exact match
-          puts " matches exactly #{ch}" if log
-          s_repeating = (last_ch == ch)
-        end
-        i += 1
-        last_ch = ch
+          node = previous_node
+          is_repeating = true
+        elsif ch.vowel? and i <= str.size-1 
+          puts " matched vowel #{ch}"
+          %w{a e i o u}.each do |vowel|
+            if match = matches?(str[i+1,str.size],previous_node[vowel])
+              return match 
+            end 
+          end 
+        else
+          return false
+        end 
+      else 
+        # exact match
+        puts " matches exactly #{ch}" if log
+        s_repeating = (last_ch == ch)
       end
-      # done, no failures, we found a match 
-      return node['__WORD__']
+      i += 1
+      last_ch = ch
     end
+    # done, no failures, we found a match 
+    return node['__WORD__']
   end
+end
 =begin
   def matches?(word)
     i,j,score = 0,0,0
