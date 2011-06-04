@@ -66,40 +66,44 @@ class Trie
   # recurse through variations until __WORD__ is reached or if nil is found, then we don't have a match
   #   return an array of matches
 
-  def match?(trie, str, results = {})
+  def match?(trie, str, results = {}, last = '')
     str = str.class == String ? str.split('') : str
 
+    puts str.join('')
     # base case if your string is empty, check if you're at word 
     if str.size == 0
+      puts " trie: #{trie.keys.join(',')}"
       if trie and trie['__WORD__'] != nil
-        puts "\tmatches #{results['__WORD__']}:"
+        puts "\tmatches #{trie['__WORD__']}:"
         results[trie['__WORD__']] = 1
       else 
-        puts ":no match #{trie.keys}"
+        puts "\tno match"
       end 
     else
 
       ch = str.shift
-
-      if ch.vowel? 
-        # check vowel
-        %w{a e i o u}.each do |vowel|
-          print "  #{ch}:vowel"
-          match?(trie[vowel],str,results)
-        end 
-      end 
-
-      if ch == str[0]
-        # check for repeating consonant 
-        print "  #{ch}:repeating"
-        match?(trie[ch],str[1,str.size],results) # skip next letter
-      end 
-
+      
+      # NOTES , might have some DAV violation here, some values are bleeding oved from one condition to the next 
       if trie[ch]
         # check for perfect match
-        print "  #{ch}:perfect"
-        match?(trie[ch],str,results) 
+        print "  #{ch}:100%, matching key:#{ch} str:#{str.to_s}:"
+        match?(trie[ch],str,results,ch) # traverse
       end 
+
+      #if ch.vowel? 
+        # check vowel
+        #%w{a e i o u}.each do |vowel|
+          #print "  #{ch}:VOWL, trying #{vowel} on str:#{str.to_s}:"
+          #match?(trie,vowel+str.join(''),results,ch) # replace vowel and try again
+      #  end 
+      #end 
+
+      if ch == last 
+        # check for repeating letter 
+        print "  #{ch}:REPT, matching letter #{ch} and #{str[0]} str:#{str.to_s}:"
+        match?(trie,str,results,ch) # skip next letter
+      end 
+
     end 
     return results
   end 
