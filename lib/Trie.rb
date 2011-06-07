@@ -5,6 +5,8 @@ class Trie
   VOWELS = %w{a e i o u}
 
   # modified from wikipedia simple ruby trie struct
+  # need a stop key to store the matching word
+  #
   attr_accessor :trie
 
   def initialize()
