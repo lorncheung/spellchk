@@ -3,13 +3,13 @@
   / ___/____  ___  / / /_____/ /_  / /_______
   \__ \/ __ \/ _ \/ / // ___/ __ \/ //_/ ___/
  ___/ / /_/ /  __/ / // /__/ / / / ,< / /    
-/____/ .___/\___/_/_/ \___/_/ /_/_/|_/_/     
+/____/ .___/\___/_/_/ \___/_/ /_/_/|_/_/     v2
     /_/         
 	by Loren Cheung (lccheung@gmail.com)
 
-== Spellchkr
+== Spellchkr v2
 
-Ruby program that reads words from a prompt and prints either the best spelling suggestion or "NO SUGGESTION" if no suggestion can be found.   
+Ruby program that reads words from a prompt and prints either the best spelling suggestion or "NO SUGGESTION" if no suggestion can be found.   New version utilizes a prefix trie structure for faster lookup.  
 
 == Requirements 
 
@@ -23,6 +23,7 @@ Ruby 1.8.x+
   generate_words.rb 
   lib/String.rb
   lib/Dictionary.rb
+  lib/Trie.rb
 
 == Usage 
 
