@@ -13,13 +13,13 @@ def main()
     puts File.new('README',"r").read
     exit()
   end 
- # Benchmark.bm do |x|
- #   x.report("loading:") do 
+  Benchmark.bm do |x|
+    x.report("loading:") do 
 
       word_list = Dictionary.load_words_into_trie()
 
       while (true) do  
-        #begin 
+        begin 
           suggestions = {}
           print "> "
           answer = STDIN.gets
@@ -29,9 +29,9 @@ def main()
             puts "NO SUGGESTION" 
             next 
           end 
-          
+
           answer.chomp! and answer.downcase!
-          
+
           suggestions = answer.matches?(word_list.trie,answer)
 
           if suggestions.size > 0
@@ -41,12 +41,12 @@ def main()
             puts "NO SUGGESTION"
           end
 
-        #rescue Exception => err
-        #  puts err
-        #  break
-        #end
-   #   end 
-  #  end 
+        rescue Exception => err
+          puts err
+          break
+        end
+      end 
+    end 
   end 
 end 
 
