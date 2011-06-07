@@ -1,7 +1,80 @@
+require 'lib/Trie'
 class String
 
   VOWELS = %w{a e i o u}
 
+  def matches?(node, str, last_char = '', score = 0)
+    matches = {}
+    str = str.class == String ? str.split('') : str
+    node = node.node if node.class == Trie
+
+    # base case if your string is empty, check if you're at word 
+    if str.size == 0
+      if node and node['__WORD__'] != nil 
+        # count exact matches as instant match 
+        score = self.size*10 if node['__WORD__'] == self
+        matches[node['__WORD__']] = score
+      else 
+        # do nothing, no match
+      end 
+    else
+      char = str.shift 
+
+      # check for perfect match
+      if node[char]  
+        # next character node 
+        matches.merge!(self.matches?(node[char],str.clone,char,score+4)) 
+      end
+      
+      # check for repeating letter 
+      if char == last_char
+        # move to the next letter, don't advance node yet
+        matches.merge!(self.matches?(node,str.clone,char,score+2)) 
+      end 
+        
+      # check vowel
+      if char.vowel? 
+        VOWELS.each do |vowel|
+          if node[vowel] and char != vowel # don't traverse same vowel node
+            scr = (homonym_vowels?(vowel,char) ? 2 : 1)
+
+            # advance along vowel nodes
+            matches.merge!(self.matches?(node[vowel],str.clone,char,score+scr)) 
+          end 
+        end 
+      end 
+    end 
+    return matches
+  end 
+
+
+  def vowel?(v) 
+    return (v.size == 1 and v.match(/[aeiou]/i))
+  end 
+
+  #
+  # do vowels sound the similar? 
+  #
+  def homonym_vowels?(v1,v2) 
+
+    pairs = [['a','e'],['e','i'],['o','u'],['o','e']]
+    [v1,v2].map(&:downcase!)
+
+    return pairs.inject(false){ |bool,vowels| bool ||= (vowels.member?(v1) and vowels.member?(v2))}
+  end 
+
+
+
+
+
+
+
+
+
+
+
+  #  DEPRECATED
+  #
   #  Given a word (dictionary word), matches? will return 
   #   1) a numeric score rank (highest being exact match 5 x # of letters)
   #   2) false for no match 
@@ -12,7 +85,7 @@ class String
   #     Repeated letters: "jjoobbb" => "job"
   #     Incorrect vowels: "weke" => "wake"
   #
-  def matches?(word)
+  def old_matches?(word)
     # convert strings to string arrays using scan instead of String.chars.to_a 
     # since it might not be defined in 1.8.6, otherwise would be slightly faster
     word_arr = word.scan(/./) 
