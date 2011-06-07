@@ -1,5 +1,7 @@
 class String
 
+  VOWELS = %w{a e i o u}
+
   #  Given a word (dictionary word), matches? will return 
   #   1) a numeric score rank (highest being exact match 5 x # of letters)
   #   2) false for no match 
@@ -92,7 +94,7 @@ class String
           #if i > 0 and !self_arr[i-1].match(/#{letter}/i) and letter.vowel?
           if letter.vowel? 
             # swap only if non-consecutive
-            word << %w{a e i o u}[rand(5)]
+            word << VOWELS[rand(5)]
           else 
             word << letter
           end 
@@ -105,9 +107,6 @@ class String
     end 
   end 
 
-
-  # Helper methods 
-  #   
   def vowel? 
     return (self.size == 1 and self.match(/[aeiou]/i))
   end 

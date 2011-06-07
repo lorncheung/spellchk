@@ -16,7 +16,7 @@ def main()
  # Benchmark.bm do |x|
  #   x.report("loading:") do 
 
-      word_list = Dictionary.load_words_trie()
+      word_list = Dictionary.load_words_into_trie()
 
       while (true) do  
         #begin 
@@ -32,7 +32,7 @@ def main()
           
           answer.chomp! and answer.downcase!
           
-          suggestions = word_list.match?(word_list.trie,answer,suggestions,answer,'')
+          suggestions = word_list.matches?(word_list.trie,answer,answer,'')
 
           if suggestions.size > 0
             best = suggestions.sort{|a,b| b[1] <=> a[1]}.first.first 
