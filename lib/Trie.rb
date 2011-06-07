@@ -1,6 +1,10 @@
 class Trie
-  # modified from wikipedia simple ruby trie struct
+  require 'lib/String'
+  require 'lib/Dictionary'
 
+  VOWELS = %w{a e i o u}
+
+  # modified from wikipedia simple ruby trie struct
   attr_accessor :trie
 
   def initialize()
@@ -45,16 +49,6 @@ class Trie
     return node['__WORD__'] if node['__WORD__'] == str
   end
 
-  def edits (node,str,results,depth) 
-    if str.size == 0 && depth >= 0 && !node['__WORD__'].blank? 
-      results[node['__WORD__']] = 1 # or score
-    end 
-
-    if depth >= 1 
-
-    end 
-  end 
-  
   def best_match(arr)
 
   end 
@@ -65,161 +59,105 @@ class Trie
   # track path to get to point 
   # recurse through variations until __WORD__ is reached or if nil is found, then we don't have a match
   #   return an array of matches
-
-  def match?(trie, str, results = {}, last = '')
+  def testy(trie,str,prefix,depth,results)
     str = str.class == String ? str.split('') : str
+    trie = trie.trie if trie.class == Trie
+    rewind_str = str.join('')
+    puts "str: #{str.join('')}"
 
-    puts str.join('')
     # base case if your string is empty, check if you're at word 
     if str.size == 0
-      puts " trie: #{trie.keys.join(',')}"
       if trie and trie['__WORD__'] != nil
         puts "\tmatches #{trie['__WORD__']}:"
         results[trie['__WORD__']] = 1
-      else 
-        puts "\tno match"
+      end 
+      trie = goto(rewind_str)
+    else 
+      if depth >= 0
+        ch = str.first
+        if trie[ch] 
+          # check for perfect match
+          puts "  #{ch}:PERFECT, matching key:#{ch} prefix:#{prefix+ch}:"
+          testy(trie[ch],str[1,str.size],prefix+ch,depth-1,results) # traverse
+          #puts "TRIE keyes after processing : #{trie.keys}" if trie
+        end 
+
+        if ch.vowel? 
+          %w{a e i o u}.each do |vowel|
+            #wrd = vowel + str.join('')
+            puts "  #{ch}:VOWEL, replacing key:#{vowel} str:#{str} - pre:#{prefix}"
+            testy(trie[vowel],str[1,str.size],prefix+vowel,depth-1,results) # replace vowel and try again
+          end 
+        end 
+        
+        if prefix.size > 1 and ch == prefix[prefix.size-1].chr
+          # check for repeating letter 
+          puts "  #{ch}:REPEAT, matching letter #{ch} prefix:#{prefix}:"
+          testy(trie,str,prefix+ch,depth-1,results) # skip next letter
+          #puts "TRIE keyes after processing : #{trie.keys}" if trie
+        end 
+      end 
+    end 
+    return results
+  end 
+
+  def match?(trie, str, results, orig, last, score = 0)
+    log = false 
+    str = str.class == String ? str.split('') : str
+    trie = trie.trie if trie.class == Trie
+    puts "str: #{str.join('')} orig: #{orig}" if log
+
+    # base case if your string is empty, check if you're at word 
+    if str.size == 0
+      if trie and trie['__WORD__'] != nil 
+        puts "\tmatches str:#{str} : #{trie['__WORD__']}:" if log
+        score = orig.size*6 if trie['__WORD__'] == orig
+        results[trie['__WORD__']] = score
       end 
     else
 
       ch = str.shift
-      
-      # NOTES , might have some DAV violation here, some values are bleeding oved from one condition to the next 
-      if trie[ch]
+
+      if trie[ch] 
         # check for perfect match
-        print "  #{ch}:100%, matching key:#{ch} str:#{str.to_s}:"
-        match?(trie[ch],str,results,ch) # traverse
+        puts "  #{ch}:100%, matching key:#{ch} str:#{str.to_s}:" if log
+        match?(trie[ch],str.clone,results,orig,ch,score+4) # traverse
       end 
-
-      #if ch.vowel? 
-        # check vowel
-        #%w{a e i o u}.each do |vowel|
-          #print "  #{ch}:VOWL, trying #{vowel} on str:#{str.to_s}:"
-          #match?(trie,vowel+str.join(''),results,ch) # replace vowel and try again
-      #  end 
-      #end 
-
+      
       if ch == last 
         # check for repeating letter 
-        print "  #{ch}:REPT, matching letter #{ch} and #{str[0]} str:#{str.to_s}:"
-        match?(trie,str,results,ch) # skip next letter
+        puts "  #{ch}:REPT, matching letter #{ch} and #{str[0]} str:#{str.to_s}:" if log
+        match?(trie,str.clone,results,orig,ch,score+2) # skip next letter
       end 
-
+        
+      if ch.vowel? 
+        # check vowel
+        VOWELS.each do |vowel|
+          if trie[vowel] and ch != vowel
+            score += (homonym_vowels?(vowel,ch) ? 2 : 1)
+            puts "  #{ch}:VOWL, trying #{vowel} on str:#{str.to_s}:" if log
+            match?(trie[vowel],str.clone,results,orig,ch,score) # traverse valid vowels
+          end 
+        end 
+      end 
     end 
     return results
   end 
 
 
-  def matches?(str, depth, node = nil) 
-    # traverse trough str and look for match in trie
-    str = str.class == String ? str.downcase.split('') : str
-    node = node || @trie # recursive or default full set
-    i = 0
-    last_ch = ""
-    previous_node = nil
-    is_repeating = false
-
-    log = true 
-    while (i < str.size and str.size > 0)
-      return false if str.nil?
-      ch = str[i]
-      print ch if log
-      cur = ch
-      previous_node = node
-      node = node[cur]
-      if node == nil or ch.vowel? 
-        # not a match
-        if (ch == last_ch)
-          if ch.vowel? 
-            %w{a e i o u}.each do |vowel|
-              if match = matches?(str[i+1,str.size],depth,previous_node[vowel])
-                return match 
-              end 
-            end 
-          else 
-            # repeating letter (consonant or vowel) 
-            puts " matches repeating #{ch}" if log
-          end 
-          node = previous_node
-          is_repeating = true
-        elsif ch.vowel? and i <= str.size-1 
-          puts " matched vowel #{ch}"
-          %w{a e i o u}.each do |vowel|
-            if match = matches?(str[i+1,str.size],previous_node[vowel])
-              return match 
-            end 
-          end 
-        else
-          return false
-        end 
-      else 
-        # exact match
-        puts " matches exactly #{ch}" if log
-        s_repeating = (last_ch == ch)
-      end
-      i += 1
-      last_ch = ch
-    end
-    # done, no failures, we found a match 
-    return node['__WORD__']
-  end
-end
-=begin
-  def matches?(word)
-    i,j,score = 0,0,0
-    lastletter = ""
-    is_repeating = false
-
-    # base case, return the obvious
-    return 6*self.size if word.downcase == self.downcase
-
-    while (i < self_arr.size and j < word_arr.size)
-      self_char = self_arr[i].downcase
-      word_char = word_arr[j].downcase 
-
-      if self_char == word_char 
-        # exact match
-        score += 4
-        is_repeating = lastletter == self_char
-      else 
-        # check for spelling exceptions
-        if (i > 0 and self_char == self_arr[i-1].downcase)
-          # repeating consonant 
-          score += 3
-          j -= 1 # shift index back on dict word 
-          is_repeating = true
-        elsif self_char.vowel? and word_char.vowel?
-          # diff vowel 
-          is_repeating = lastletter == self_char
-          score += 2
-        elsif lastletter.vowel? and word_char.vowel?
-          # diff vowel but last letter also vowel
-          i -= 1
-          score += 1
-        elsif self_char.vowel? and lastletter.vowel? and is_repeating 
-          # diff vowel but last letter is repeating vowel
-          j -= 1
-          score += 1
-        else
-          return false
-        end 
-      end 
-      # adjust counters 
-      lastletter = self_char
-      i += 1 
-      j += 1
-    end 
-
-    # we're done scanning, check for end cases
-    if i == self_arr.size 
-      # self stopped first, if dict word ends too, return score 
-      return j == word_arr.size ? score : false 
-    else 
-      # dict word stopped first, iterate until the end of self
-      while (i < self_arr.size)
-        return false if self_arr[i].downcase != lastletter
-        i += 1
-      end
-      return score # all trailing letters match
-    end 
+  def vowel?(v) 
+    return (v.size == 1 and v.match(/[aeiou]/i))
   end 
-=end 
+
+  #
+  # do vowels sound the similar? 
+  #
+  def homonym_vowels?(v1,v2) 
+
+    pairs = [['a','e'],['e','i'],['o','u'],['o','e']]
+    [v1,v2].map(&:downcase!)
+
+    return pairs.inject(false){ |bool,vowels| bool ||= (vowels.member?(v1) and vowels.member?(v2))}
+  end 
+
+end

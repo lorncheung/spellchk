@@ -13,26 +13,40 @@ def main()
     puts File.new('README',"r").read
     exit()
   end 
+ # Benchmark.bm do |x|
+ #   x.report("loading:") do 
 
-  word_list = Dictionary.load_words_trie
+      word_list = Dictionary.load_words_trie()
 
-  while (true) do  
-    begin 
-      print "> "
-      answer = STDIN.gets
-      answer.chomp! 
-      answer.downcase! 
+      while (true) do  
+        #begin 
+          suggestions = {}
+          print "> "
+          answer = STDIN.gets
 
-      results = {}
-      if word_list.match?(word_list.trie, answer, results)
-        puts results.keys.join(', ')
-      else 
-        puts "NO SUGGESTION"
-      end
+          # check for bad input, nil or nonalpha first letter
+          if answer.chars.first.nil? 
+            puts "NO SUGGESTION" 
+            next 
+          end 
+          
+          answer.chomp! and answer.downcase!
+          
+          suggestions = word_list.match?(word_list.trie,answer,suggestions,answer,'')
 
-    rescue Exception => err
-      break
-    end
+          if suggestions.size > 0
+            best = suggestions.sort{|a,b| b[1] <=> a[1]}.first.first 
+            puts best + ":" + suggestions.inspect
+          else 
+            puts "NO SUGGESTION"
+          end
+
+        #rescue Exception => err
+        #  puts err
+        #  break
+        #end
+   #   end 
+  #  end 
   end 
 end 
 
