@@ -17,51 +17,48 @@ class String
   #     Incorrect vowels: "weke" => "wake" (+2 for homonym vowels, else +1) 
   #     ** exact letter matches are given (+4 score)
   #
-  def matches?(node, str, last_char = '', score = 0)
-    # initialize 
-    results = {}
-    str = str.split('') if str.class == String 
+  def matches?(node, last_char = '', score = 0)
+    {}.tap do |results|
+      # base case if your string is empty, check if you're at word 
+      if self.size == 0
+        if node and node['__WORD__'] != nil 
+          # count exact matches as instant match 
+          score = self.size*10 if node['__WORD__'] == self
+          results[node['__WORD__']] = score
+        else 
+          # do nothing, no final word match
+        end 
+      else
+        # set first char and remaining str
+        char = self[0,1]
+        str = self[1,self.size]
 
-    # base case if your string is empty, check if you're at word 
-    if str.size == 0
-      if node and node['__WORD__'] != nil 
-        # count exact matches as instant match 
-        score = self.size*10 if node['__WORD__'] == self
-        results[node['__WORD__']] = score
-      else 
-        # do nothing, no final word match
-      end 
-    else
-      char = str.shift 
-      # cloning new string because str mutates after each condition
-      #
-      if node[char]  
-        # check for exact letter match
-        results.merge!(self.matches?(node[char],str.clone,char,score+4)) 
-      elsif node[char.downcase]
-        # case error, normalize char to get to next character node 
-        results.merge!(self.matches?(node[char.downcase],str.clone,char,score+3))
-      end
-     
-      if char == last_char
-        # repeated letters, don't advance node until repeat finishes
-        results.merge!(self.matches?(node,str.clone,char,score+2)) 
-      end 
-        
-      if char.vowel? 
-        # incorrect vowels
-        VOWELS.each do |vowel|
-          if node[vowel] and char != vowel # don't traverse same vowel node
-            scr = (homonym_vowels?(vowel,char) ? 2 : 1)
+        if node[char]  
+          # check for exact letter match
+          results.merge!(str.matches?(node[char],char,score+4)) 
+        elsif node[char.swapcase]
+          # case error, normalize char to get to next character node 
+          results.merge!(str.matches?(node[char.downcase],char,score+3))
+        end
 
-            # advance along vowel nodes
-            results.merge!(self.matches?(node[vowel],str.clone,char,score+scr)) 
+        if char == last_char
+          # repeated letters, don't advance node until repeat finishes
+          results.merge!(str.matches?(node,char,score+2)) 
+        end 
+
+        if char.vowel? 
+          # incorrect vowels
+          VOWELS.each do |vowel|
+            if node[vowel] and char != vowel # skip same vowel node 
+              # modify score 
+              scr = (homonym_vowels?(vowel,char) ? 2 : 1)
+              # advance along vowel nodes
+              results.merge!(str.matches?(node[vowel],char,score+scr)) 
+            end 
           end 
         end 
       end 
-
     end 
-    return results 
   end 
 
   def vowel?

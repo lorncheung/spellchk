@@ -5,7 +5,7 @@ class Dictionary
   def self.load_words_into_trie
     file = File.new("/usr/share/dict/words", "r")
  
-    word_list = Trie.new # store in an alpha hash for faster lookup
+    word_list = Trie.new # store in an prefix trie/hash for faster lookup
 
     while (word = file.gets) 
       word.chomp!
@@ -17,7 +17,7 @@ class Dictionary
   end 
   
   
-  # DEPRECATED
+  # DEPRECATED, use load_words_into_trie
   #
   def self.load_words 
     file = File.new("/usr/share/dict/words", "r")

@@ -1,6 +1,6 @@
 class Trie
 
-  # modified from wikipedia simple ruby trie struct
+  # modified ruby trie struct from wikipedia
   # need a stop key to store the matching word
   #
   attr_accessor :root
@@ -21,18 +21,6 @@ class Trie
       end
     end 
     node['__WORD__'] = str
-  end
-
-  def find(str) 
-    node = @root
-    str.each_char do |ch|
-      cur = ch 
-      node = node[cur]
-      if node == nil 
-        return false
-      end
-    end
-    return node['__WORD__'] if node['__WORD__'] == str
   end
 
 end
