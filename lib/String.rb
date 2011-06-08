@@ -1,79 +1,114 @@
 require 'lib/Trie'
+
 class String
 
   VOWELS = %w{a e i o u}
 
+  ############
+  #
+  #  Given a word (dictionary word), matches? will return 
+  #   1) a hash of suggested matched words with a numeric score 
+  #   2) empty hash if no match is found
+  #  
+  #   The class of spelling mistakes matches? corrects is as follows:
+  #
+  #     Case (upper/lower) errors: "inSIDE" => "inside" (+3 score)
+  #     Repeated letters: "jjoobbb" => "job" (+2 score)
+  #     Incorrect vowels: "weke" => "wake" (+2 for homonym vowels, else +1) 
+  #     ** exact letter matches are given (+4 score)
+  #
   def matches?(node, str, last_char = '', score = 0)
-    matches = {}
-    str = str.class == String ? str.split('') : str
-    node = node.node if node.class == Trie
+    # initialize 
+    results = {}
+    str = str.split('') if str.class == String 
 
     # base case if your string is empty, check if you're at word 
     if str.size == 0
       if node and node['__WORD__'] != nil 
         # count exact matches as instant match 
         score = self.size*10 if node['__WORD__'] == self
-        matches[node['__WORD__']] = score
+        results[node['__WORD__']] = score
       else 
-        # do nothing, no match
+        # do nothing, no final word match
       end 
     else
       char = str.shift 
-
-      # check for perfect match
+      # cloning new string because str mutates after each condition
+      #
       if node[char]  
-        # next character node 
-        matches.merge!(self.matches?(node[char],str.clone,char,score+4)) 
+        # check for exact letter match
+        results.merge!(self.matches?(node[char],str.clone,char,score+4)) 
+      elsif node[char.downcase]
+        # case error, normalize char to get to next character node 
+        results.merge!(self.matches?(node[char.downcase],str.clone,char,score+3))
       end
-      
-      # check for repeating letter 
+     
       if char == last_char
-        # move to the next letter, don't advance node yet
-        matches.merge!(self.matches?(node,str.clone,char,score+2)) 
+        # repeated letters, don't advance node until repeat finishes
+        results.merge!(self.matches?(node,str.clone,char,score+2)) 
       end 
         
-      # check vowel
       if char.vowel? 
+        # incorrect vowels
         VOWELS.each do |vowel|
           if node[vowel] and char != vowel # don't traverse same vowel node
             scr = (homonym_vowels?(vowel,char) ? 2 : 1)
 
             # advance along vowel nodes
-            matches.merge!(self.matches?(node[vowel],str.clone,char,score+scr)) 
+            results.merge!(self.matches?(node[vowel],str.clone,char,score+scr)) 
           end 
         end 
       end 
+
     end 
-    return matches
+    return results 
   end 
 
-
-  def vowel?(v) 
-    return (v.size == 1 and v.match(/[aeiou]/i))
+  def vowel?
+    return (self.size == 1 and self.match(/[aeiou]/i))
   end 
 
-  #
-  # do vowels sound the similar? 
-  #
   def homonym_vowels?(v1,v2) 
-
-    pairs = [['a','e'],['e','i'],['o','u'],['o','e']]
+    # vowels that sound similar
+    pairs = [['a','e'],['e','i'],['o','u']]
     [v1,v2].map(&:downcase!)
 
     return pairs.inject(false){ |bool,vowels| bool ||= (vowels.member?(v1) and vowels.member?(v2))}
   end 
 
 
+  #   scramble! returns a scrambled version of the string transformed 3 possible ways
+  #
+  #   1) adding repeating letters
+  #   2) swapping out vowel with a random vowel 
+  #   3) swap the case of the letter 
+  #   4) preserve existing letter 
+  #
+  def scramble!
+    self_arr = self.chars.to_a
+    ''.tap do |word|
+      self_arr.each_with_index do |letter,i|
+        case %w{repeating vowels capitalize}[rand(3)]
+        when "repeating"
+          word << letter*(rand(2)+1) # up to 3 consecutive
+        when "vowels"
+          #if i > 0 and !self_arr[i-1].match(/#{letter}/i) and letter.vowel?
+          if letter.vowel? 
+            # swap only if non-consecutive
+            word << VOWELS[rand(5)]
+          else 
+            word << letter
+          end 
+        when "capitalize" 
+          word << letter.swapcase
+        else 
+          word << letter
+        end 
+      end 
+    end 
+  end 
 
-
-
-
-
-
-
-
-
-  #  DEPRECATED
+  #  DEPRECATED: use matches? on a prefix trie structure for better performance
   #
   #  Given a word (dictionary word), matches? will return 
   #   1) a numeric score rank (highest being exact match 5 x # of letters)
@@ -149,40 +184,6 @@ class String
     end 
   end 
 
-  #   scramble! returns a scrambled version of the string transformed 3 possible ways
-  #
-  #   1) adding repeating letters
-  #   2) swapping out vowel with a random vowel 
-  #   3) swap the case of the letter 
-  #   4) preserve existing letter 
-  #
-  def scramble!
-    self_arr = self.chars.to_a
-    ''.tap do |word|
-      self_arr.each_with_index do |letter,i|
-        case %w{repeating vowels capitalize}[rand(3)]
-        when "repeating"
-          word << letter*(rand(2)+1) # up to 3 consecutive
-        when "vowels"
-          #if i > 0 and !self_arr[i-1].match(/#{letter}/i) and letter.vowel?
-          if letter.vowel? 
-            # swap only if non-consecutive
-            word << VOWELS[rand(5)]
-          else 
-            word << letter
-          end 
-        when "capitalize" 
-          word << letter.swapcase
-        else 
-          word << letter
-        end 
-      end 
-    end 
-  end 
-
-  def vowel? 
-    return (self.size == 1 and self.match(/[aeiou]/i))
-  end 
 
 end 
 

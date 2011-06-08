@@ -30,9 +30,9 @@ def main()
             next 
           end 
 
-          answer.chomp! and answer.downcase!
+          answer.chomp! 
 
-          suggestions = answer.matches?(word_list.trie,answer)
+          suggestions = answer.matches?(word_list.root,answer)
 
           if suggestions.size > 0
             best = suggestions.sort{|a,b| b[1] <=> a[1]}.first.first 

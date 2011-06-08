@@ -1,20 +1,16 @@
 class Trie
-  require 'lib/String'
-  require 'lib/Dictionary'
-
-  VOWELS = %w{a e i o u}
 
   # modified from wikipedia simple ruby trie struct
   # need a stop key to store the matching word
   #
-  attr_accessor :trie
+  attr_accessor :root
 
   def initialize()
-    @trie = Hash.new()
+    @root = Hash.new()
   end
 
   def build(str) 
-    node = @trie    
+    node = @root
     str.each_char do |ch|
       cur = ch 
       prev_node = node
@@ -28,7 +24,7 @@ class Trie
   end
 
   def find(str) 
-    node = @trie
+    node = @root
     str.each_char do |ch|
       cur = ch 
       node = node[cur]

@@ -9,9 +9,10 @@ class Dictionary
 
     while (word = file.gets) 
       word.chomp!
-      word.downcase!
+      word.downcase! 
       word_list.build(word)
     end 
+
     return word_list
   end 
   
